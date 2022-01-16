@@ -16,6 +16,7 @@
 
 package br.com.zup.beagle.android.components
 
+import android.graphics.Typeface
 import android.view.Gravity
 import android.view.View
 import android.widget.TextView
@@ -30,7 +31,13 @@ import br.com.zup.beagle.android.view.ViewFactory
 import br.com.zup.beagle.android.widget.RootView
 import br.com.zup.beagle.android.widget.WidgetView
 import br.com.zup.beagle.annotation.RegisterWidget
+import br.com.zup.beagle.core.BeagleJson
 import br.com.zup.beagle.widget.core.TextAlignment
+
+@BeagleJson
+enum class TextStyle {
+    BOLD, ITALIC, BOLD_ITALIC
+}
 
 /**
  * A text widget will define a text view natively using the server driven information received through Beagle.
@@ -47,6 +54,8 @@ import br.com.zup.beagle.widget.core.TextAlignment
 data class Text(
     val text: Bind<String>,
     val styleId: String? = null,
+    val textSize: Float? = null,
+    val textTypeFace: TextStyle? = null,
     val textColor: Bind<String>? = null,
     val alignment: Bind<TextAlignment>? = null,
 ) : WidgetView() {
@@ -57,10 +66,10 @@ data class Text(
         textColor: String? = null,
         alignment: TextAlignment? = null,
     ) : this(
-        expressionOrValueOf(text),
-        styleId,
-        expressionOrValueOfNullable(textColor),
-        valueOfNullable(alignment)
+        text = expressionOrValueOf(text),
+        styleId = styleId,
+        textColor = expressionOrValueOfNullable(textColor),
+        alignment = valueOfNullable(alignment)
     )
 
     @Transient
@@ -72,7 +81,20 @@ data class Text(
 
         val textView = if (textStyle == 0) ViewFactory.makeTextView(rootView.getContext())
         else ViewFactory.makeTextView(rootView.getContext(), textStyle)
-
+        textSize?.let { textView.textSize = it }
+        textTypeFace?.let {
+            when (it) {
+                TextStyle.BOLD -> {
+                    textView.setTypeface(textView.typeface, Typeface.BOLD)
+                }
+                TextStyle.ITALIC -> {
+                    textView.setTypeface(textView.typeface, Typeface.ITALIC)
+                }
+                TextStyle.BOLD_ITALIC -> {
+                    textView.setTypeface(textView.typeface, Typeface.BOLD_ITALIC)
+                }
+            }
+        }
         textView.setTextWidget(this, rootView)
         return textView
     }
