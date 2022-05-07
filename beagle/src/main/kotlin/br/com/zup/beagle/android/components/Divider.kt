@@ -3,7 +3,7 @@ package br.com.zup.beagle.android.components
 import android.content.Context
 import android.graphics.Color
 import android.view.View
-import android.widget.FrameLayout
+import android.widget.LinearLayout
 import br.com.zup.beagle.R
 import br.com.zup.beagle.android.widget.RootView
 import br.com.zup.beagle.android.widget.WidgetView
@@ -21,7 +21,7 @@ data class Divider(
         }
     }
 
-    class DividerComponent(context: Context) : FrameLayout(context) {
+    class DividerComponent(context: Context) : LinearLayout(context) {
 
         init {
             View.inflate(context,  R.layout.beagle_divider_horizontal, this)

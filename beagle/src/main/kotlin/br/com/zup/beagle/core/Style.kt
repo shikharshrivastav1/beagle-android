@@ -62,6 +62,7 @@ data class Style(
     val flex: Flex? = null,
     val positionType: PositionType? = null,
     val display: Bind<Display>? = null,
+    val visible: Boolean? = true,
 )
 
 /**
