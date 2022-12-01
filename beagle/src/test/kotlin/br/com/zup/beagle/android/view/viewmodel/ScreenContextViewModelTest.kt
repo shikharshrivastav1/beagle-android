@@ -17,14 +17,14 @@
 package br.com.zup.beagle.android.view.viewmodel
 
 import android.view.View
-import br.com.zup.beagle.android.BaseTest
-import br.com.zup.beagle.android.action.Action
+import br.com.zup.beagle.android.BaseConfigurationTest
 import br.com.zup.beagle.android.action.SetContextInternal
 import br.com.zup.beagle.android.context.Bind
 import br.com.zup.beagle.android.context.ContextData
 import br.com.zup.beagle.android.context.ContextDataEvaluation
 import br.com.zup.beagle.android.context.ContextDataManager
 import br.com.zup.beagle.android.context.ImplicitContextManager
+import br.com.zup.beagle.android.context.InternalContextObserver
 import br.com.zup.beagle.android.utils.Observer
 import io.mockk.every
 import io.mockk.mockk
@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
 @DisplayName("Given a ScreenContextViewModel")
-class ScreenContextViewModelTest : BaseTest() {
+class ScreenContextViewModelTest : BaseConfigurationTest() {
 
     private val contextDataManager = mockk<ContextDataManager>(relaxed = true)
     private val contextDataEvaluation = mockk<ContextDataEvaluation>(relaxed = true)
@@ -46,7 +46,10 @@ class ScreenContextViewModelTest : BaseTest() {
 
     @BeforeEach
     fun clear() {
-        screenContextViewModel = ScreenContextViewModel(contextDataManager, contextDataEvaluation, implicitContextManager)
+        screenContextViewModel = ScreenContextViewModel(beagleConfigurator,
+            contextDataManager,
+            contextDataEvaluation,
+            implicitContextManager)
     }
 
     @Test
@@ -203,6 +206,33 @@ class ScreenContextViewModelTest : BaseTest() {
 
         // Then
         verify(exactly = 1) { contextDataManager.clearContexts() }
+    }
+
+    @Test
+    fun `GIVEN ScreenContextViewModel WHEN addContextObserver THEN should call addContextObserver`() {
+        //Given
+        val contextId = "contextId"
+        val contextObserver: InternalContextObserver = {
+
+        }
+
+        // When
+        screenContextViewModel.addContextObserver("contextId", contextObserver)
+
+        // Then
+        verify(exactly = 1) { contextDataManager.addContextObserver(contextId, contextObserver) }
+    }
+
+    @Test
+    fun `GIVEN ScreenContextViewModel WHEN removeContextObserver THEN should call removeContextObserver`() {
+        //Given
+        val contextId = "contextId"
+
+        // When
+        screenContextViewModel.removeContextObserver(contextId)
+
+        // Then
+        verify(exactly = 1) { contextDataManager.removeContextObserver(contextId) }
     }
 
     @DisplayName("When tryLinkContextInBindWithoutContext is called")

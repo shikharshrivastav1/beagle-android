@@ -18,20 +18,37 @@ package br.com.zup.beagle.android.view.viewmodel
 
 import android.view.View
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import br.com.zup.beagle.android.action.SetContextInternal
 import br.com.zup.beagle.android.context.Bind
 import br.com.zup.beagle.android.context.ContextData
 import br.com.zup.beagle.android.context.ContextDataEvaluation
 import br.com.zup.beagle.android.context.ContextDataManager
 import br.com.zup.beagle.android.context.ImplicitContextManager
+import br.com.zup.beagle.android.context.InternalContextObserver
+import br.com.zup.beagle.android.setup.BeagleConfigurator
 import br.com.zup.beagle.android.utils.Observer
 
 @Suppress("TooManyFunctions")
 internal class ScreenContextViewModel(
-    private val contextDataManager: ContextDataManager = ContextDataManager(),
-    private val contextDataEvaluation: ContextDataEvaluation = ContextDataEvaluation(),
+    private val beagleConfigurator: BeagleConfigurator,
+    private val contextDataManager: ContextDataManager = ContextDataManager(beagleConfigurator),
+    private val contextDataEvaluation: ContextDataEvaluation = ContextDataEvaluation(beagleConfigurator),
     private val implicitContextManager: ImplicitContextManager = ImplicitContextManager()
 ) : ViewModel() {
+
+    companion object {
+        fun provideFactory(
+            beagleConfigurator: BeagleConfigurator,
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return ScreenContextViewModel(
+                    beagleConfigurator = beagleConfigurator
+                ) as T
+            }
+        }
+    }
 
     fun setIdToViewWithContext(view: View) {
         contextDataManager.setIdToViewWithContext(view)
@@ -44,6 +61,11 @@ internal class ScreenContextViewModel(
     fun addContext(view: View, contextDataList: List<ContextData>, shouldOverrideExistingContext: Boolean = false) {
         contextDataManager.addContext(view, contextDataList, shouldOverrideExistingContext)
     }
+
+    fun addContextObserver(contextId: String, contextObserver: InternalContextObserver)
+    = contextDataManager.addContextObserver(contextId, contextObserver)
+
+    fun removeContextObserver(contextId: String) = contextDataManager.removeContextObserver(contextId)
 
     fun restoreContext(view: View) {
         contextDataManager.restoreContext(view)

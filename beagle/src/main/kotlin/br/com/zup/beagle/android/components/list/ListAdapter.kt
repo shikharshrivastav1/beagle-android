@@ -22,13 +22,14 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.RecyclerView
 import br.com.zup.beagle.android.action.AsyncAction
 import br.com.zup.beagle.android.action.AsyncActionStatus
+import br.com.zup.beagle.android.components.DEFAULT_INDEX_NAME
 import br.com.zup.beagle.android.components.utils.Template
 import br.com.zup.beagle.android.components.utils.TemplateJson
 import br.com.zup.beagle.android.context.AsyncActionData
 import br.com.zup.beagle.android.context.Bind
 import br.com.zup.beagle.android.context.ContextData
 import br.com.zup.beagle.android.context.normalizeContextValue
-import br.com.zup.beagle.android.data.serializer.BeagleJsonSerializerFactory
+import br.com.zup.beagle.android.data.serializer.BeagleJsonSerializer
 import br.com.zup.beagle.android.utils.setIsAutoGenerateIdEnabled
 import br.com.zup.beagle.android.utils.toAndroidId
 import br.com.zup.beagle.android.view.ViewFactory
@@ -36,12 +37,15 @@ import br.com.zup.beagle.android.widget.core.ServerDrivenComponent
 
 @Suppress("LongParameterList")
 internal class ListAdapter(
+    val serializer: BeagleJsonSerializer,
     val orientation: Int,
     val iteratorName: String,
+    val indexName: String = DEFAULT_INDEX_NAME,
     val key: String? = null,
     val listViewModels: ListViewModels,
     val templateList: List<Template>? = null,
     val originView: View,
+    val dataSource: Bind<List<Any>>
 ) : RecyclerView.Adapter<ListViewHolder>() {
 
     // Recyclerview id for post config changes id management
@@ -50,9 +54,6 @@ internal class ListAdapter(
     // Parent list information needed by inner lists
     private var parentListViewSuffix: String? = null
     private var parentListViewId: Int? = null
-
-    // Serializer to provide new template instances
-    private val serializer = BeagleJsonSerializerFactory.serializer
 
     // Items captured by ListView
     private var listItems: List<Any> = mutableListOf()
@@ -182,7 +183,9 @@ internal class ListAdapter(
             serializer,
             listViewModels,
             jsonTemplate,
-            iteratorName
+            iteratorName,
+            indexName,
+            dataSource
         )
         createdViewHolders.add(viewHolder)
         return viewHolder
@@ -229,7 +232,7 @@ internal class ListAdapter(
                 clearAdapterContent()
                 notifyListViewIdViewModel(listItems.isEmpty(), componentId)
                 listItems = list
-                adapterItems = list.map { ListItem(data = it.normalizeContextValue()) }
+                adapterItems = list.map { ListItem(data = it.normalizeContextValue(serializer.moshi)) }
                 notifyDataSetChanged()
             }
         } ?: clearList()
@@ -285,12 +288,15 @@ internal class ListAdapter(
 
     fun clone(): ListAdapter {
         return ListAdapter(
+            this.serializer,
             this.orientation,
             this.iteratorName,
+            this.indexName,
             this.key,
             this.listViewModels,
             this.templateList,
-            this.originView
+            this.originView,
+            this.dataSource
         )
     }
 }

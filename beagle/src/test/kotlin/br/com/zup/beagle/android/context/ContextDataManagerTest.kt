@@ -20,10 +20,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.collection.LruCache
 import br.com.zup.beagle.R
+import br.com.zup.beagle.android.BaseConfigurationTest
+import br.com.zup.beagle.android.BaseSoLoaderTest
 import br.com.zup.beagle.android.BaseTest
 import br.com.zup.beagle.android.action.SetContextInternal
+import br.com.zup.beagle.android.data.serializer.BeagleMoshi
 import br.com.zup.beagle.android.logger.BeagleMessageLogs
 import br.com.zup.beagle.android.mockdata.createViewForContext
+import br.com.zup.beagle.android.setup.BeagleConfigurator
 import br.com.zup.beagle.android.testutil.RandomData
 import br.com.zup.beagle.android.testutil.getPrivateField
 import br.com.zup.beagle.android.testutil.setPrivateField
@@ -31,6 +35,7 @@ import br.com.zup.beagle.android.utils.Observer
 import br.com.zup.beagle.android.utils.getContextBinding
 import br.com.zup.beagle.android.utils.getListContextData
 import br.com.zup.beagle.android.utils.setContextBinding
+import com.squareup.moshi.Moshi
 import io.mockk.Runs
 import io.mockk.clearMocks
 import io.mockk.every
@@ -57,7 +62,7 @@ import org.junit.jupiter.api.Test
 private val CONTEXT_ID = RandomData.string()
 
 @DisplayName("Given a ContextDataManager")
-class ContextDataManagerTest : BaseTest() {
+class ContextDataManagerTest : BaseConfigurationTest() {
 
     private lateinit var contextDataManager: ContextDataManager
     private lateinit var contexts: MutableMap<Int, Set<ContextBinding>>
@@ -72,12 +77,13 @@ class ContextDataManagerTest : BaseTest() {
         super.setUp()
 
         mockkObject(BeagleMessageLogs)
+        mockkObject(BeagleConfigurator.Companion)
         mockkObject(GlobalContext)
 
         every { BeagleMessageLogs.errorWhileTryingToNotifyContextChanges(any()) } just Runs
         every { BeagleMessageLogs.errorWhileTryingToChangeContext(any()) } just Runs
         every { BeagleMessageLogs.errorWhileTryingToAccessContext(any()) } just Runs
-        every { GlobalContext.set(any(), any()) } just Runs
+        every { GlobalContext.set(any(), any(), any<Moshi>()) } just Runs
 
         every { viewContext.id } returns viewId
         every { viewContext.parent } returns null
@@ -101,9 +107,11 @@ class ContextDataManagerTest : BaseTest() {
         clearMocks(
             viewContext,
             GlobalContext,
-            answers = false
+            BeagleConfigurator.Companion,
+            answers = false,
         )
-        contextDataManager = ContextDataManager()
+        every { BeagleConfigurator.configurator } returns beagleConfigurator
+        contextDataManager = ContextDataManager(beagleConfigurator)
 
         contexts = contextDataManager.getPrivateField("contexts")
         viewBinding = contextDataManager.getPrivateField("viewBinding")
@@ -121,7 +129,7 @@ class ContextDataManagerTest : BaseTest() {
             every { GlobalContext.observeGlobalContextChange(any()) } just Runs
 
             // When
-            val contextDataManager = ContextDataManager()
+            val contextDataManager = ContextDataManager(beagleConfigurator)
 
             // Then
             val contexts = contextDataManager.getPrivateField<Map<Int, ContextBinding>>("contexts")
@@ -461,12 +469,16 @@ class ContextDataManagerTest : BaseTest() {
             val contextData = ContextData(CONTEXT_ID, json)
             val updateContext = SetContextInternal(CONTEXT_ID, false, "a")
             contextDataManager.addContext(viewContext, contextData)
+            //Given
+            val contextObserver: InternalContextObserver = mockk(relaxed = true, relaxUnitFun = true)
+            contextDataManager.addContextObserver(CONTEXT_ID, contextObserver)
 
             // When
             contextDataManager.updateContext(viewContext, updateContext)
 
             // Then
             assertFalse { json.getBoolean("a") }
+            verify { contextObserver.invoke(updateContext) }
         }
 
         @DisplayName("Then should set value on context root")
@@ -496,7 +508,7 @@ class ContextDataManagerTest : BaseTest() {
             contextDataManager.updateContext(viewContext, updateContext)
 
             // Then
-            verify(exactly = 1) { GlobalContext.set(updateContext.value, updateContext.path) }
+            verify(exactly = 1) { GlobalContext.set(updateContext.value, updateContext.path, moshi) }
         }
     }
 
@@ -556,6 +568,32 @@ class ContextDataManagerTest : BaseTest() {
         }
     }
 
+    @DisplayName("When removeContextObserver is called")
+    @Nested
+    inner class ContextObserver {
+        @DisplayName("Should Add/Remove context obeservers")
+        @Test
+        fun addRemoveContextObserver() {
+            //Given
+            val contextId = "contextId"
+            val contextId2 = "contextId2"
+            val contextObserver: InternalContextObserver = mockk()
+            val contextObserver2: InternalContextObserver = mockk()
+
+            // When
+            contextDataManager.addContextObserver(contextId, contextObserver)
+            contextDataManager.addContextObserver(contextId2, contextObserver2)
+
+            assertEquals(contextObserver, contextDataManager.getContextObserver(contextId))
+
+            contextDataManager.removeContextObserver(contextId)
+
+            // Then
+            assertEquals(null, contextDataManager.getContextObserver(contextId))
+            assertEquals(contextObserver2, contextDataManager.getContextObserver(contextId2))
+        }
+    }
+
     @DisplayName("When clearContexts is called")
     @Nested
     inner class ClearContexts {
@@ -567,7 +605,7 @@ class ContextDataManagerTest : BaseTest() {
             val bind = mockk<Bind.Expression<Boolean>>()
             val observer = mockk<Observer<Boolean?>>()
             val context = ContextData(id = RandomData.string(), value = RandomData.string())
-            val contextDataManager = ContextDataManager()
+            val contextDataManager = ContextDataManager(beagleConfigurator)
             val viewWithoutId = mockk<View>(relaxed = true) {
                 every { id } returns View.NO_ID
                 every { getContextBinding() } returns mockk(relaxed = true)

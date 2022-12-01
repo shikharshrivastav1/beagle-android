@@ -37,6 +37,7 @@ import br.com.zup.beagle.android.context.AsyncActionData
 import br.com.zup.beagle.android.context.Bind
 import br.com.zup.beagle.android.context.expressionOf
 import br.com.zup.beagle.android.context.constant
+import br.com.zup.beagle.android.data.serializer.BeagleJsonSerializer
 import br.com.zup.beagle.android.utils.setIsAutoGenerateIdEnabled
 import br.com.zup.beagle.android.view.ViewFactory
 import br.com.zup.beagle.android.view.custom.BeagleFlexView
@@ -65,9 +66,12 @@ class ListAdapterTest : BaseTest() {
     var executorTestRule = InstantTaskExecutorRule()
 
     private val viewHolderItemView = mockk<BeagleFlexView>(relaxed = true)
+    private val serializer = mockk<BeagleJsonSerializer>(relaxed = true)
     private val viewGroupMock = mockk<ViewGroup>(relaxed = true)
     private val viewTypeMock = 0
     private val recyclerViewMock = mockk<RecyclerView>(relaxed = true)
+    private val dataSource = mockk<Bind<List<Any>>>(relaxed = true)
+
     private val asyncActionMock = mockk<AsyncActionImpl>()
     private val asyncActionDataMock = AsyncActionData(
         viewHolderItemView, asyncActionMock
@@ -144,12 +148,14 @@ class ListAdapterTest : BaseTest() {
         every { generateIdViewModel.getViewId(rootView.getParentId()) } returns generatedId
 
         listAdapter = ListAdapter(
+            serializer = serializer,
             orientation = orientation,
             iteratorName = iteratorName,
             key = key,
             listViewModels = listViewModels,
             templateList = templateList,
-            originView = recyclerViewMock
+            originView = recyclerViewMock,
+            dataSource = dataSource
         )
     }
 
@@ -202,12 +208,14 @@ class ListAdapterTest : BaseTest() {
     fun `Given a ListAdapter with horizontal orientation When call onCreateViewHolder Then should call setWidthAutoAndDirtyAllViews for the created itemView`() {
 
         val subject = ListAdapter(
+            serializer = serializer,
             orientation = RecyclerView.HORIZONTAL,
             iteratorName = iteratorName,
             key = key,
             listViewModels = listViewModels,
             templateList = templateList,
-            originView = recyclerViewMock
+            originView = recyclerViewMock,
+            dataSource = dataSource
         )
 
         subject.onCreateViewHolder(viewGroupMock, viewTypeMock)
@@ -218,12 +226,14 @@ class ListAdapterTest : BaseTest() {
     @Test
     fun `Given a ListAdapter with horizontal orientationWhen call onCreateViewHolder Then should set the correct layout params to view holder itemView`() {
         val subject = ListAdapter(
+            serializer = serializer,
             orientation = RecyclerView.HORIZONTAL,
             iteratorName = iteratorName,
             key = key,
             listViewModels = listViewModels,
             templateList = templateList,
-            originView = recyclerViewMock
+            originView = recyclerViewMock,
+            dataSource = dataSource
         )
         val expectedLayoutParams = ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -241,12 +251,14 @@ class ListAdapterTest : BaseTest() {
     @Test
     fun `Given a ListAdapter When call getItemViewType Then should evaluate context only once for each adapter position`() {
         val subject = ListAdapter(
+            serializer = serializer,
             orientation = RecyclerView.VERTICAL,
             iteratorName = iteratorName,
             key = key,
             listViewModels = listViewModels,
             templateList = templateList,
-            originView = recyclerViewMock
+            originView = recyclerViewMock,
+            dataSource = dataSource
         )
 
         every {
@@ -275,12 +287,14 @@ class ListAdapterTest : BaseTest() {
     fun `Given a ListAdapter When call getItemViewType after calling setList Then should evaluate context for each adapter position again`() {
         val newList = listOf("stub 3", "stub 4")
         val subject = ListAdapter(
+            serializer = serializer,
             orientation = RecyclerView.VERTICAL,
             iteratorName = iteratorName,
             key = key,
             listViewModels = listViewModels,
             templateList = templateList,
-            originView = recyclerViewMock
+            originView = recyclerViewMock,
+            dataSource = dataSource
         )
 
         every {
@@ -310,12 +324,14 @@ class ListAdapterTest : BaseTest() {
     fun `Given a ListAdapter When call getItemViewType Then should get the correct default template index`() {
         val expectedIndex = 2
         val subject = ListAdapter(
+            serializer = serializer,
             orientation = RecyclerView.VERTICAL,
             iteratorName = iteratorName,
             key = key,
             listViewModels = listViewModels,
             templateList = templateList,
-            originView = recyclerViewMock
+            originView = recyclerViewMock,
+            dataSource = dataSource
         )
 
         every {
@@ -351,12 +367,14 @@ class ListAdapterTest : BaseTest() {
             ),
         )
         val subject = ListAdapter(
+            serializer = serializer,
             orientation = RecyclerView.VERTICAL,
             iteratorName = iteratorName,
             key = key,
             listViewModels = listViewModels,
             templateList = templateList,
-            originView = recyclerViewMock
+            originView = recyclerViewMock,
+            dataSource = dataSource
         )
 
         every {
@@ -379,13 +397,16 @@ class ListAdapterTest : BaseTest() {
         val expectedTemplate = Text(text = constant("test"))
         val expectedViewType = 1
         val subject = ListAdapter(
+            serializer = serializer,
             orientation = RecyclerView.VERTICAL,
             iteratorName = iteratorName,
             key = key,
             listViewModels = listViewModels,
             templateList = templateList,
-            originView = recyclerViewMock
+            originView = recyclerViewMock,
+            dataSource = dataSource
         )
+        every { serializer.deserializeComponent(any()) } returns expectedTemplate
 
         every {
             listViewModels.contextViewModel.evaluateExpressionForGivenContext(
@@ -417,14 +438,17 @@ class ListAdapterTest : BaseTest() {
         val expectedTemplate = Button(text = constant("button test"))
         val expectedViewType = 2
         val subject = ListAdapter(
+            serializer = serializer,
             orientation = RecyclerView.VERTICAL,
             iteratorName = iteratorName,
             key = key,
             listViewModels = listViewModels,
             templateList = templateList,
-            originView = recyclerViewMock
+            originView = recyclerViewMock,
+            dataSource = dataSource
         )
 
+        every { serializer.deserializeComponent(any()) } returns expectedTemplate
         every {
             listViewModels.contextViewModel.evaluateExpressionForGivenContext(
                 recyclerViewMock,
@@ -452,13 +476,16 @@ class ListAdapterTest : BaseTest() {
             ),
         )
         val subject = ListAdapter(
+            serializer = serializer,
             orientation = RecyclerView.VERTICAL,
             iteratorName = iteratorName,
             key = key,
             listViewModels = listViewModels,
             templateList = templateListWithNoDefault,
-            originView = recyclerViewMock
+            originView = recyclerViewMock,
+            dataSource = dataSource
         )
+        every { serializer.deserializeComponent(any()) } returns expectedTemplate
 
         every {
             listViewModels.contextViewModel.evaluateExpressionForGivenContext(
