@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 ZUP IT SERVICOS EM TECNOLOGIA E INOVACAO SA
+ * Copyright 2020, 2022 ZUP IT SERVICOS EM TECNOLOGIA E INOVACAO SA
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package br.com.zup.beagle.android.view.viewmodel
 
 import android.view.View
 import androidx.lifecycle.ViewModel
-import br.com.zup.beagle.android.action.Action
 import br.com.zup.beagle.android.action.SetContextInternal
 import br.com.zup.beagle.android.context.Bind
 import br.com.zup.beagle.android.context.ContextData
@@ -42,11 +41,15 @@ internal class ScreenContextViewModel(
         contextDataManager.addContext(view, contextData, shouldOverrideExistingContext)
     }
 
+    fun addContext(view: View, contextDataList: List<ContextData>, shouldOverrideExistingContext: Boolean = false) {
+        contextDataManager.addContext(view, contextDataList, shouldOverrideExistingContext)
+    }
+
     fun restoreContext(view: View) {
         contextDataManager.restoreContext(view)
     }
 
-    fun getContextData(view: View) = contextDataManager.getContextData(view)
+    fun getListContextData(view: View) = contextDataManager.getListContextData(view)
 
     fun updateContext(originView: View, setContextInternal: SetContextInternal) {
         contextDataManager.updateContext(originView, setContextInternal)
@@ -64,12 +67,12 @@ internal class ScreenContextViewModel(
         contextDataManager.linkBindingToContextAndEvaluateThem(view)
     }
 
-    fun addImplicitContext(contextData: ContextData, sender: Any, actions: List<Action>) {
-        implicitContextManager.addImplicitContext(contextData, sender, actions)
+    fun addImplicitContext(contextData: ContextData, sender: Any, originView: View) {
+        implicitContextManager.addImplicitContext(contextData, sender, originView)
     }
 
-    fun evaluateExpressionForImplicitContext(originView: View, bindCaller: Action, bind: Bind.Expression<*>): Any? {
-        val implicitContexts = implicitContextManager.getImplicitContextForBind(bindCaller)
+    fun evaluateExpressionForImplicitContext(originView: View, bind: Bind.Expression<*>): Any? {
+        val implicitContexts = implicitContextManager.getImplicitContextForView(originView)
         val contexts = contextDataManager.getContextsFromBind(originView, bind).toMutableList()
         contexts += implicitContexts
         return contextDataEvaluation.evaluateBindExpression(contexts, bind)
@@ -89,4 +92,11 @@ internal class ScreenContextViewModel(
         super.onCleared()
         clearContexts()
     }
+
+    fun tryLinkContextInBindWithoutContext(originView: View) {
+        contextDataManager.tryLinkContextInBindWithoutContext(originView)
+
+    }
+
+    fun getContextData(contextDataId: String): ContextData? = contextDataManager.getContextData(contextDataId)
 }

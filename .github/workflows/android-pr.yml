@@ -1,5 +1,5 @@
 #
-  # Copyright 2020 ZUP IT SERVICOS EM TECNOLOGIA E INOVACAO SA
+  # Copyright 2020, 2022 ZUP IT SERVICOS EM TECNOLOGIA E INOVACAO SA
   #
   # Licensed under the Apache License, Version 2.0 (the "License");
   # you may not use this file except in compliance with the License.
@@ -31,6 +31,8 @@ jobs:
         runs-on: macos-latest
         steps:
             -   uses: actions/checkout@v2
+                with:
+                    fetch-depth: 0
             -   name: Read secrets from AWS Secrets Manager into environment variables
                 if: always()
                 continue-on-error: true
@@ -55,11 +57,6 @@ jobs:
                     path: ${{ env.gradle-path }}
                     key: ${{ runner.os }}-build-${{ env.gradle-cache-key }}-${{ hashFiles('android/buildSrc/**') }}
                     restore-keys: ${{ runner.os }}-build-${{ env.gradle-cache-key }}
-            -   name: Setup JDK (11)
-                uses: actions/setup-java@v2
-                with:
-                    distribution: 'adopt'
-                    java-version: '11'
             -   name: Run pr check
                 env:
                     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

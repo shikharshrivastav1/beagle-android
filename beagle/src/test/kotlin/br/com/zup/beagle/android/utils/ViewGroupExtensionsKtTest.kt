@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 ZUP IT SERVICOS EM TECNOLOGIA E INOVACAO SA
+ * Copyright 2020, 2022 ZUP IT SERVICOS EM TECNOLOGIA E INOVACAO SA
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,22 +25,31 @@ import br.com.zup.beagle.android.networking.RequestData
 import br.com.zup.beagle.android.view.ViewFactory
 import br.com.zup.beagle.android.view.custom.BeagleView
 import br.com.zup.beagle.android.view.custom.OnServerStateChanged
+import br.com.zup.beagle.android.view.viewmodel.AnalyticsViewModel
+import br.com.zup.beagle.android.view.viewmodel.GenerateIdViewModel
+import br.com.zup.beagle.android.view.viewmodel.ListViewIdViewModel
+import br.com.zup.beagle.android.view.viewmodel.OnInitViewModel
 import br.com.zup.beagle.android.widget.ActivityRootView
 import br.com.zup.beagle.android.widget.FragmentRootView
-import br.com.zup.beagle.core.ServerDrivenComponent
+import br.com.zup.beagle.android.widget.Widget
+import io.mockk.Runs
+import io.mockk.clearMocks
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.verifySequence
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import java.net.URI
 
 private val REQUEST_DATA_FAKE = RequestData(
-    uri = URI(""),
+    url = "",
 )
+
+private const val SCREEN_ID = "screen_id"
 
 @DisplayName("Given a View Group")
 internal class ViewGroupExtensionsKtTest : BaseTest() {
@@ -49,17 +58,40 @@ internal class ViewGroupExtensionsKtTest : BaseTest() {
     private val beagleView: BeagleView = mockk(relaxed = true, relaxUnitFun = true)
     private val activityMock: AppCompatActivity = mockk(relaxed = true, relaxUnitFun = true)
     private val serializerFactory: BeagleSerializer = mockk(relaxed = true)
-    private val component: ServerDrivenComponent = mockk(relaxed = true)
+    private val component: Widget = mockk(relaxed = true)
+    private val generateIdViewModel: GenerateIdViewModel = mockk(relaxed = true)
+    private val listViewIdViewModel: ListViewIdViewModel = mockk(relaxed = true)
+    private val onInitViewModel: OnInitViewModel = mockk(relaxed = true)
+    private val analyticsViewModel = mockk<AnalyticsViewModel>()
 
-    @BeforeEach
+    @BeforeAll
     override fun setUp() {
         super.setUp()
 
         mockkObject(ViewFactory)
+        prepareViewModelMock(
+            generateIdViewModel,
+            listViewIdViewModel,
+            onInitViewModel,
+            analyticsViewModel
+        )
 
         beagleSerializerFactory = serializerFactory
+        every { component.id } returns SCREEN_ID
         every { ViewFactory.makeBeagleView(any()) } returns beagleView
         every { serializerFactory.deserializeComponent(any()) } returns component
+        every { analyticsViewModel.createScreenReport(any(), any()) } just Runs
+    }
+
+    @BeforeEach
+    fun clear() {
+        clearMocks(
+            ViewFactory,
+            viewGroup,
+            serializerFactory,
+            beagleView,
+            answers = false
+        )
     }
 
     @DisplayName("When load view with activity")
@@ -75,7 +107,6 @@ internal class ViewGroupExtensionsKtTest : BaseTest() {
             // Then
             verifySequence {
                 ViewFactory.makeBeagleView(any<ActivityRootView>())
-                beagleView.stateChangedListener = null
                 beagleView.serverStateChangedListener = null
                 beagleView.loadView(REQUEST_DATA_FAKE)
                 beagleView.loadCompletedListener = any()
@@ -99,7 +130,6 @@ internal class ViewGroupExtensionsKtTest : BaseTest() {
             // Then
             verifySequence {
                 ViewFactory.makeBeagleView(any<ActivityRootView>())
-                beagleView.stateChangedListener = null
                 beagleView.serverStateChangedListener = listenerMock
                 beagleView.loadView(REQUEST_DATA_FAKE)
                 beagleView.loadCompletedListener = any()
@@ -123,7 +153,6 @@ internal class ViewGroupExtensionsKtTest : BaseTest() {
             // Then
             verifySequence {
                 ViewFactory.makeBeagleView(any<FragmentRootView>())
-                beagleView.stateChangedListener = null
                 beagleView.serverStateChangedListener = null
                 beagleView.loadView(REQUEST_DATA_FAKE)
                 beagleView.loadCompletedListener = any()
@@ -148,7 +177,6 @@ internal class ViewGroupExtensionsKtTest : BaseTest() {
             // Then
             verifySequence {
                 ViewFactory.makeBeagleView(any<FragmentRootView>())
-                beagleView.stateChangedListener = null
                 beagleView.serverStateChangedListener = listenerMock
                 beagleView.loadView(REQUEST_DATA_FAKE)
                 beagleView.loadCompletedListener = any()
@@ -173,7 +201,7 @@ internal class ViewGroupExtensionsKtTest : BaseTest() {
                 """.trimIndent()
 
             // When
-            viewGroup.loadView(activityMock, screenJson)
+            viewGroup.loadView(activityMock, screenJson, SCREEN_ID)
 
             // Then
             verifySequence {
@@ -184,6 +212,7 @@ internal class ViewGroupExtensionsKtTest : BaseTest() {
                 beagleView.listenerOnViewDetachedFromWindow = any()
                 viewGroup.removeAllViews()
                 viewGroup.addView(beagleView)
+                analyticsViewModel.createScreenReport("screen_id", any())
             }
         }
     }

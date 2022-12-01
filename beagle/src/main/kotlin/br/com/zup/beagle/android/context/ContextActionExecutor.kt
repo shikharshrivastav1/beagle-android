@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 ZUP IT SERVICOS EM TECNOLOGIA E INOVACAO SA
+ * Copyright 2020, 2022 ZUP IT SERVICOS EM TECNOLOGIA E INOVACAO SA
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,20 +38,20 @@ internal object ContextActionExecutor {
         analyticsValue: String? = null,
     ) {
         if (context != null) {
-            createImplicitContextForActions(rootView, sender, context, actions)
+            createImplicitContextForView(rootView, sender, context, origin)
         }
 
         executeActions(rootView, origin, actions, analyticsValue)
     }
 
-    private fun createImplicitContextForActions(
+    private fun createImplicitContextForView(
         rootView: RootView,
         sender: Any,
         context: ContextData,
-        actions: List<Action>,
+        origin: View,
     ) {
         val viewModel = rootView.generateViewModelInstance<ScreenContextViewModel>()
-        viewModel.addImplicitContext(context.normalize(), sender, actions)
+        viewModel.addImplicitContext(context.normalize(), sender, origin)
     }
 
     private fun executeActions(
