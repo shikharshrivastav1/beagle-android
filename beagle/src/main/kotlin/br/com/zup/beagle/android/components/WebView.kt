@@ -19,17 +19,14 @@ package br.com.zup.beagle.android.components
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
-import android.net.http.SslError
 import android.os.Build
-import android.util.Log
 import android.view.View
 import android.webkit.HttpAuthHandler
-import android.webkit.SslErrorHandler
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
-import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import br.com.zup.beagle.android.annotation.RegisterWidget
 import br.com.zup.beagle.android.context.Bind
 import br.com.zup.beagle.android.context.expressionOrConstant
 import br.com.zup.beagle.android.utils.observeBindChanges
@@ -38,7 +35,6 @@ import br.com.zup.beagle.android.view.ServerDrivenState
 import br.com.zup.beagle.android.view.ViewFactory
 import br.com.zup.beagle.android.widget.RootView
 import br.com.zup.beagle.android.widget.WidgetView
-import br.com.zup.beagle.android.annotation.RegisterWidget
 
 /**
  * A WebView widget will define a WebView natively using the server driven information received through Beagle.
@@ -60,7 +56,7 @@ data class WebView(
     @SuppressLint("SetJavaScriptEnabled")
     override fun buildView(rootView: RootView): View {
         val webView = ViewFactory.makeWebView(rootView.getContext())
-        webView.webViewClient = BeagleWebViewClient(rootView.getContext())
+        webView.webViewClient = BeagleWebViewClient(rootView.getContext(), basicAuthUsername, basicAuthPassword)
         webView.clearCache(true)
         webView.settings.run {
             javaScriptEnabled = true
@@ -70,10 +66,8 @@ data class WebView(
             javaScriptCanOpenWindowsAutomatically = true
             allowFileAccessFromFileURLs = true
             allowUniversalAccessFromFileURLs = true
-            //WebView.setWebContentsDebuggingEnabled(true)
         }
 
-        //Log.v("Shk", "JS DOM DB set")
         observeBindChanges(rootView, webView, url) {
             it?.let { webView.loadUrl(it) }
         }
