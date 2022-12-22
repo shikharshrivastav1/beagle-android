@@ -108,7 +108,11 @@ data class WebView(
             request: WebResourceRequest?,
             error: WebResourceError?,
         ) {
-            val throwable = Error("$error")
+            val throwable = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                Error("$error")
+            } else {
+                Error("received error")
+            }
             notify(state = ServerDrivenState.WebViewError(throwable) { view?.reload() })
         }
 
