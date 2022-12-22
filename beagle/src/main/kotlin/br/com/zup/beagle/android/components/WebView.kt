@@ -87,6 +87,14 @@ data class WebView(
             view?.requestLayout()
         }
 
+        override fun onReceivedHttpAuthRequest(view: WebView?, handler: HttpAuthHandler?, host: String?, realm: String?) {
+            basicAuthUsername?.let {
+                handler?.proceed(it, basicAuthPassword)
+                return
+            }
+            handler?.cancel()
+        }
+
         override fun onPageStarted(
             view: WebView?,
             url: String?,
