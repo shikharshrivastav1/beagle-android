@@ -8,7 +8,7 @@ import android.widget.TextClock
 import br.com.zup.beagle.R
 import br.com.zup.beagle.android.widget.RootView
 import br.com.zup.beagle.android.widget.WidgetView
-import br.com.zup.beagle.annotation.RegisterWidget
+import br.com.zup.beagle.android.annotation.RegisterWidget
 
 @RegisterWidget("beagleTextClock")
 class BeagleTextClock(

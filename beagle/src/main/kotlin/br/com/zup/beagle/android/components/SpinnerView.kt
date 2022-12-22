@@ -8,11 +8,11 @@ import android.widget.FrameLayout
 import android.widget.Spinner
 import br.com.zup.beagle.R
 import br.com.zup.beagle.android.action.Action
+import br.com.zup.beagle.android.annotation.RegisterWidget
 import br.com.zup.beagle.android.context.ContextData
 import br.com.zup.beagle.android.utils.handleEvent
 import br.com.zup.beagle.android.widget.RootView
 import br.com.zup.beagle.android.widget.WidgetView
-import br.com.zup.beagle.annotation.RegisterWidget
 
 @RegisterWidget("beagleSpinner")
 class SpinnerView (

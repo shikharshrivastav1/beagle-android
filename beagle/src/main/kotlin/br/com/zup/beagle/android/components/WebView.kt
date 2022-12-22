@@ -19,9 +19,15 @@ package br.com.zup.beagle.android.components
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
+import android.net.http.SslError
+import android.os.Build
+import android.util.Log
 import android.view.View
+import android.webkit.HttpAuthHandler
+import android.webkit.SslErrorHandler
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import br.com.zup.beagle.android.context.Bind
@@ -45,6 +51,8 @@ import br.com.zup.beagle.android.annotation.RegisterWidget
 @RegisterWidget("webView")
 data class WebView(
     val url: Bind<String>,
+    val basicAuthUsername: String? = null,
+    val basicAuthPassword: String? = null
 ) : WidgetView() {
 
     constructor(url: String) : this(expressionOrConstant(url))
@@ -53,14 +61,26 @@ data class WebView(
     override fun buildView(rootView: RootView): View {
         val webView = ViewFactory.makeWebView(rootView.getContext())
         webView.webViewClient = BeagleWebViewClient(rootView.getContext())
-        webView.settings.javaScriptEnabled = true
+        webView.clearCache(true)
+        webView.settings.run {
+            javaScriptEnabled = true
+            domStorageEnabled = true
+            databaseEnabled = true
+            allowContentAccess = true
+            javaScriptCanOpenWindowsAutomatically = true
+            allowFileAccessFromFileURLs = true
+            allowUniversalAccessFromFileURLs = true
+            //WebView.setWebContentsDebuggingEnabled(true)
+        }
+
+        //Log.v("Shk", "JS DOM DB set")
         observeBindChanges(rootView, webView, url) {
             it?.let { webView.loadUrl(it) }
         }
         return webView
     }
 
-    class BeagleWebViewClient(val context: Context) : WebViewClient() {
+    class BeagleWebViewClient(val context: Context, val basicAuthUsername: String? = null, val basicAuthPassword: String? = null) : WebViewClient() {
 
         override fun onPageFinished(view: WebView?, url: String?) {
             notify(loading = false)
