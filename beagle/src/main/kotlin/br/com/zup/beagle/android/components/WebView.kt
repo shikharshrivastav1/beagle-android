@@ -26,9 +26,12 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import br.com.zup.beagle.android.action.Action
 import br.com.zup.beagle.android.annotation.RegisterWidget
 import br.com.zup.beagle.android.context.Bind
+import br.com.zup.beagle.android.context.ContextData
 import br.com.zup.beagle.android.context.expressionOrConstant
+import br.com.zup.beagle.android.utils.handleEvent
 import br.com.zup.beagle.android.utils.observeBindChanges
 import br.com.zup.beagle.android.view.BeagleActivity
 import br.com.zup.beagle.android.view.ServerDrivenState
@@ -48,10 +51,14 @@ import br.com.zup.beagle.android.widget.WidgetView
 data class WebView(
     val url: Bind<String>,
     val basicAuthUsername: String? = null,
-    val basicAuthPassword: String? = null
+    val basicAuthPassword: String? = null,
+    val onPageStarted: List<Action>? = null,
+    val onPageFinished: List<Action>? = null,
 ) : WidgetView() {
 
     constructor(url: String) : this(expressionOrConstant(url))
+
+    var rootView: RootView? = null
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun buildView(rootView: RootView): View {
@@ -67,18 +74,32 @@ data class WebView(
             allowFileAccessFromFileURLs = true
             allowUniversalAccessFromFileURLs = true
         }
-
         observeBindChanges(rootView, webView, url) {
             it?.let { webView.loadUrl(it) }
         }
+        this.rootView = rootView
         return webView
     }
 
-    class BeagleWebViewClient(val context: Context, val basicAuthUsername: String? = null, val basicAuthPassword: String? = null) : WebViewClient() {
+    class BeagleWebViewClient(val context: Context, val basicAuthUsername: String? = null, val basicAuthPassword: String? = null,
+                              val beagleWebView: br.com.zup.beagle.android.components.WebView? = null) : WebViewClient() {
 
         override fun onPageFinished(view: WebView?, url: String?) {
             notify(loading = false)
             view?.requestLayout()
+            this.beagleWebView?.run {
+                rootView?.let {
+                    view?.let { it1 ->
+                        this.onPageFinished?.let { it2 ->
+                            handleEvent(
+                                it,
+                                it1,
+                                it2
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         override fun onReceivedHttpAuthRequest(view: WebView?, handler: HttpAuthHandler?, host: String?, realm: String?) {
@@ -95,6 +116,19 @@ data class WebView(
             favicon: Bitmap?,
         ) {
             notify(loading = true)
+            this.beagleWebView?.run {
+                rootView?.let {
+                    view?.let { it1 ->
+                        this.onPageStarted?.let { it2 ->
+                            handleEvent(
+                                it,
+                                it1,
+                                it2
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         override fun onReceivedError(
