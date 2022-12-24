@@ -54,6 +54,7 @@ data class WebView(
     val basicAuthPassword: String? = null,
     val onPageStarted: List<Action>? = null,
     val onPageFinished: List<Action>? = null,
+    val onReceivedError: List<Action>? = null,
 ) : WidgetView() {
 
     constructor(url: String) : this(expressionOrConstant(url))
@@ -135,6 +136,17 @@ data class WebView(
                 Error("received error")
             }
             notify(state = ServerDrivenState.WebViewError(throwable) { view?.reload() })
+            this.beagleWebView?.run {
+                view?.let { it1 ->
+                    this.onReceivedError?.let { actions ->
+                        handleEvent(
+                            rootView,
+                            it1,
+                            actions
+                        )
+                    }
+                }
+            }
         }
 
         private fun notify(loading: Boolean) {
