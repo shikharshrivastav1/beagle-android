@@ -58,12 +58,10 @@ data class WebView(
 
     constructor(url: String) : this(expressionOrConstant(url))
 
-    var rootView: RootView? = null
-
     @SuppressLint("SetJavaScriptEnabled")
     override fun buildView(rootView: RootView): View {
         val webView = ViewFactory.makeWebView(rootView.getContext())
-        webView.webViewClient = BeagleWebViewClient(rootView.getContext(), basicAuthUsername, basicAuthPassword)
+        webView.webViewClient = BeagleWebViewClient(rootView.getContext(), basicAuthUsername, basicAuthPassword, this, rootView)
         webView.clearCache(true)
         webView.settings.run {
             javaScriptEnabled = true
@@ -77,26 +75,23 @@ data class WebView(
         observeBindChanges(rootView, webView, url) {
             it?.let { webView.loadUrl(it) }
         }
-        this.rootView = rootView
         return webView
     }
 
     class BeagleWebViewClient(val context: Context, val basicAuthUsername: String? = null, val basicAuthPassword: String? = null,
-                              val beagleWebView: br.com.zup.beagle.android.components.WebView? = null) : WebViewClient() {
+                              val beagleWebView: br.com.zup.beagle.android.components.WebView? = null, val rootView: RootView) : WebViewClient() {
 
         override fun onPageFinished(view: WebView?, url: String?) {
             notify(loading = false)
             view?.requestLayout()
             this.beagleWebView?.run {
-                rootView?.let {
-                    view?.let { it1 ->
-                        this.onPageFinished?.let { it2 ->
-                            handleEvent(
-                                it,
-                                it1,
-                                it2
-                            )
-                        }
+                view?.let { it1 ->
+                    this.onPageFinished?.let { actions ->
+                        handleEvent(
+                            rootView,
+                            it1,
+                            actions
+                        )
                     }
                 }
             }
@@ -117,15 +112,13 @@ data class WebView(
         ) {
             notify(loading = true)
             this.beagleWebView?.run {
-                rootView?.let {
-                    view?.let { it1 ->
-                        this.onPageStarted?.let { it2 ->
-                            handleEvent(
-                                it,
-                                it1,
-                                it2
-                            )
-                        }
+                view?.let { it1 ->
+                    this.onPageStarted?.let { actions ->
+                        handleEvent(
+                            rootView,
+                            it1,
+                            actions
+                        )
                     }
                 }
             }
