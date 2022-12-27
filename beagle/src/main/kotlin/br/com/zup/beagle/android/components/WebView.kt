@@ -38,6 +38,7 @@ import br.com.zup.beagle.android.view.ServerDrivenState
 import br.com.zup.beagle.android.view.ViewFactory
 import br.com.zup.beagle.android.widget.RootView
 import br.com.zup.beagle.android.widget.WidgetView
+import java.lang.IllegalStateException
 
 /**
  * A WebView widget will define a WebView natively using the server driven information received through Beagle.
@@ -88,11 +89,16 @@ data class WebView(
             this.beagleWebView?.run {
                 view?.let { it1 ->
                     this.onPageFinished?.let { actions ->
-                        handleEvent(
-                            rootView,
-                            it1,
-                            actions
-                        )
+                        try {
+                            handleEvent(
+                                rootView,
+                                it1,
+                                actions
+                            )
+                        }
+                        catch (e: IllegalStateException) {
+
+                        }
                     }
                 }
             }
@@ -115,11 +121,16 @@ data class WebView(
             this.beagleWebView?.run {
                 view?.let { it1 ->
                     this.onPageStarted?.let { actions ->
-                        handleEvent(
-                            rootView,
-                            it1,
-                            actions
-                        )
+                        try {
+                            handleEvent(
+                                rootView,
+                                it1,
+                                actions
+                            )
+                        }
+                        catch (e: IllegalStateException) {
+                            
+                        }
                     }
                 }
             }
