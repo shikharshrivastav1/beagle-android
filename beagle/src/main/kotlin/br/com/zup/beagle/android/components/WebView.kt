@@ -129,7 +129,7 @@ data class WebView(
                             )
                         }
                         catch (e: IllegalStateException) {
-                            
+
                         }
                     }
                 }
@@ -150,11 +150,14 @@ data class WebView(
             this.beagleWebView?.run {
                 view?.let { it1 ->
                     this.onReceivedError?.let { actions ->
-                        handleEvent(
-                            rootView,
-                            it1,
-                            actions
-                        )
+                        try {
+                            handleEvent(
+                                rootView,
+                                it1,
+                                actions
+                            )
+                        }
+                        catch (e: Exception) {}
                     }
                 }
             }
