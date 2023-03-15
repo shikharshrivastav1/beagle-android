@@ -20,6 +20,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.Build
+import android.util.Log
 import android.view.View
 import android.webkit.HttpAuthHandler
 import android.webkit.WebResourceError
@@ -29,7 +30,6 @@ import android.webkit.WebViewClient
 import br.com.zup.beagle.android.action.Action
 import br.com.zup.beagle.android.annotation.RegisterWidget
 import br.com.zup.beagle.android.context.Bind
-import br.com.zup.beagle.android.context.ContextData
 import br.com.zup.beagle.android.context.expressionOrConstant
 import br.com.zup.beagle.android.utils.handleEvent
 import br.com.zup.beagle.android.utils.observeBindChanges
@@ -38,7 +38,6 @@ import br.com.zup.beagle.android.view.ServerDrivenState
 import br.com.zup.beagle.android.view.ViewFactory
 import br.com.zup.beagle.android.widget.RootView
 import br.com.zup.beagle.android.widget.WidgetView
-import java.lang.IllegalStateException
 
 /**
  * A WebView widget will define a WebView natively using the server driven information received through Beagle.
@@ -118,6 +117,7 @@ data class WebView(
             favicon: Bitmap?,
         ) {
             notify(loading = true)
+            Log.v("WebViewBeagle", "onPageStarted")
             this.beagleWebView?.run {
                 view?.let { it1 ->
                     this.onPageStarted?.let { actions ->
