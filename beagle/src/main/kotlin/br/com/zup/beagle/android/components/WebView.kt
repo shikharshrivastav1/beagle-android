@@ -63,7 +63,6 @@ data class WebView(
     override fun buildView(rootView: RootView): View {
         val webView = ViewFactory.makeWebView(rootView.getContext())
         webView.webViewClient = BeagleWebViewClient(rootView.getContext(), basicAuthUsername, basicAuthPassword, this, rootView)
-        webView.clearCache(true)
         webView.settings.run {
             javaScriptEnabled = true
             domStorageEnabled = true
