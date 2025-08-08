@@ -79,7 +79,7 @@ class StyleManager(
     fun getTextStyle(styleId: String?) = designSystem?.textStyle(styleId ?: "") ?: 0
 
     fun getInputTextStyle(styleId: String?) = designSystem?.inputTextStyle(styleId ?: "")
-        ?: R.style.Widget_AppCompat_EditText
+        ?: android.R.style.Widget_EditText
 
     fun getTabViewStyle(styleId: String?) = designSystem?.tabViewStyle(styleId ?: "") ?: 0
 }

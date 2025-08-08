@@ -90,6 +90,10 @@ internal class RouteAdapter(private val adapter: JsonAdapter<Bind<String>>,
                 writer.name(SCREEN)
                 moshi.adapter(Screen::class.java).toJson(writer, value.screen)
             }
+            null -> {
+                // Handle null case - write null to JSON
+                writer.nullValue()
+            }
         }
         writer.endObject()
     }

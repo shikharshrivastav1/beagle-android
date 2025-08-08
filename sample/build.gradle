@@ -21,6 +21,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 
 android {
+    namespace 'br.com.zup.beagle.sample'
     compileSdkVersion Dependencies.Versions.compileSdk
     buildToolsVersion Dependencies.Versions.buildTools
     defaultConfig {
@@ -54,7 +55,12 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8
+        jvmTarget = "17"
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     buildFeatures {

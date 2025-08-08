@@ -31,14 +31,14 @@ class BeaglePageIndicatorView(context: Context) : View(context) {
     private var unselectedColor: Int = Color.GRAY
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
 
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         for (i in 0 until pagesCount) {
             if (i == selectedItem) {
                 paint.color = selectedColor
             } else {
                 paint.color = unselectedColor
             }
-            canvas?.drawCircle(
+            canvas.drawCircle(
                 (width - (2 * pagesCount * 6f.dp() + 6f.dp() * (pagesCount - 1))) / 2 +
                         2 * i * 6f.dp() + 6f.dp() + i * 6f.dp(),
                 height / 2f,

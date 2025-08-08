@@ -89,7 +89,7 @@ class OnInitiableComponentImpl(override val onInit: List<Action>?) : OnInitiable
 
     private fun addListenerToExecuteOnInit(rootView: RootView) {
         origin.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-            override fun onViewAttachedToWindow(v: View?) {
+            override fun onViewAttachedToWindow(v: View) {
                 if (!onInitViewModel.isOnInitCalled(origin.id)) {
                     onInit?.forEach { action ->
                         (action as? AsyncAction)?.status?.observe(rootView.getLifecycleOwner(), observer)
@@ -99,7 +99,7 @@ class OnInitiableComponentImpl(override val onInit: List<Action>?) : OnInitiable
                 }
             }
 
-            override fun onViewDetachedFromWindow(v: View?) {}
+            override fun onViewDetachedFromWindow(v: View) {}
         })
     }
 

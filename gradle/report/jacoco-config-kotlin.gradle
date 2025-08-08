@@ -17,10 +17,10 @@
 task jacocoDebugTestReport(type: JacocoReport, dependsOn: 'test', group: 'verification') {
 
     reports {
-        csv.enabled false
-        xml.enabled true
-        xml.destination file("${project.buildDir}/reports/jacoco/report.xml")
-        html.enabled false
+        csv.required.set(false)
+        xml.required.set(true)
+        xml.outputLocation.set(file("${project.buildDir}/reports/jacoco/report.xml"))
+        html.required.set(false)
     }
 
     def sourceDirectoriesTree = fileTree("${project.buildDir}") {

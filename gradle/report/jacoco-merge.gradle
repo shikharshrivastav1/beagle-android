@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+apply plugin: 'jacoco'
+
 jacoco {
     toolVersion = "0.8.7"
 }
@@ -23,32 +25,48 @@ def allTestCoverageFile = "${rootProject.buildDir}/jacoco/allTestCoverage.exec"
 def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', '**/*$*']
 def projectsFound = subprojects.findAll()
 
-task jacocoMerge(type: JacocoMerge) {
+afterEvaluate {
+    task jacocoMerge {
+        description = 'Merges JaCoCo execution data from all subprojects'
+        group = 'verification'
 
-    doFirst {
-        delete fileTree("${rootProject.buildDir}/jacoco/") {
-            include '**/allTestCoverage.exec'
+        doFirst {
+            delete fileTree("${rootProject.buildDir}/jacoco/") {
+                include '**/allTestCoverage.exec'
+            }
         }
-    }
 
-    destinationFile = file(allTestCoverageFile)
+        doLast {
+            def execFiles = []
+            projectsFound.each {
+                def projBuildDir = it.buildDir
+                fileTree(dir: projBuildDir, includes: [
+                    'jacoco/testDebugUnitTest.exec',
+                    'outputs/code-coverage/connected/*coverage.ec',
+                    'jacoco/test.exec'
+                ]).each { file ->
+                    if (file.exists()) {
+                        execFiles.add(file)
+                    }
+                }
+            }
 
-    def classDirs = files().asFileTree
-    projectsFound.each {
-        def projBuildDir = it.buildDir
-        classDirs += fileTree(dir: projBuildDir, includes: [
-            'jacoco/testDebugUnitTest.exec', 'outputs/code-coverage/connected/*coverage.ec', 'jacoco/test.exec'
-        ])
-    }
+            if (execFiles.size() > 0) {
+                ant.taskdef(name: 'jacocoMerge', classname: 'org.jacoco.ant.MergeTask',
+                    classpath: configurations.jacocoAnt.asPath)
+                ant.jacocoMerge(destfile: allTestCoverageFile) {
+                    execFiles.each { file ->
+                        fileset(file: file)
+                    }
+                }
+            }
 
-    executionData files([classDirs])
-
-    doLast {
-        projectsFound.each {
-            def projBuildDir = it.buildDir
-            copy {
-                from("${project.buildDir}/jacoco/")
-                into("${projBuildDir}/jacoco/")
+            projectsFound.each {
+                def projBuildDir = it.buildDir
+                copy {
+                    from("${project.buildDir}/jacoco/")
+                    into("${projBuildDir}/jacoco/")
+                }
             }
         }
     }
@@ -76,8 +94,8 @@ task jacocoRootReport(type: JacocoReport, group: 'Coverage reports') {
     ])
 
     reports {
-        xml.enabled true
-        xml.destination file("${rootProject.buildDir}/reports/jacoco/report.xml")
-        html.enabled false
+        xml.required.set(true)
+        xml.outputLocation.set(file("${rootProject.buildDir}/reports/jacoco/report.xml"))
+        html.required.set(false)
     }
 }

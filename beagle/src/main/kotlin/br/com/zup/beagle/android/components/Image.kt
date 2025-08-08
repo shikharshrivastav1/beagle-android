@@ -59,6 +59,9 @@ data class Image constructor(
                 is ImagePath.Remote -> {
                     loadRemoteImage(rootView, imageView, pathType)
                 }
+                null -> {
+                    // Handle null case - do nothing or set a default image
+                }
             }
         }
 

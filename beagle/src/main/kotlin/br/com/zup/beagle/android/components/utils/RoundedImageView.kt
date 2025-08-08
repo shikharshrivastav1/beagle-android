@@ -73,11 +73,11 @@ internal class RoundedImageView(
 
     }
 
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         rect.set(FLOAT_ZERO, FLOAT_ZERO, width.toFloat(), height.toFloat())
         path.reset()
         path.addRoundRect(rect, cornerRadiusAux.getFloatArray(), Path.Direction.CW)
-        canvas?.clipPath(path)
+        canvas.clipPath(path)
         super.onDraw(canvas)
     }
 }

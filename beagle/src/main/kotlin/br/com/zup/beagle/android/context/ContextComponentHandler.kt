@@ -35,12 +35,10 @@ internal class ContextComponentHandler {
     private fun addListenerToHandleContext(viewModel: ScreenContextViewModel, view: View) {
         if (view !is InternalBeagleFlexView) {
             view.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-                override fun onViewDetachedFromWindow(v: View?) {}
+                override fun onViewDetachedFromWindow(v: View) {}
 
-                override fun onViewAttachedToWindow(v: View?) {
-                    v?.let {
-                        viewModel.linkBindingToContextAndEvaluateThem(it)
-                    }
+                override fun onViewAttachedToWindow(v: View) {
+                    viewModel.linkBindingToContextAndEvaluateThem(v)
                 }
             })
         }

@@ -88,7 +88,7 @@ data class TabBar(
             setSelectedTabIndicatorColor(
                 getColor(
                     R.styleable.BeagleTabBarStyle_tabIndicatorColor,
-                    styleManagerFactory.getTypedValueByResId(R.attr.colorAccent, context).data
+                    styleManagerFactory.getTypedValueByResId(android.R.attr.colorPrimary, context).data
                 )
             )
             tabIconTint = getColorStateList(R.styleable.BeagleTabBarStyle_tabIconTint)

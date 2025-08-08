@@ -34,9 +34,9 @@ data class RequestData(
 
     override fun describeContents() = 0
 
-    override fun writeToParcel(dest: Parcel?, flags: Int) {
-        dest?.writeString(url)
-        dest?.writeParcelable(httpAdditionalData, flags)
+    override fun writeToParcel(dest: Parcel, flags: Int) {
+        dest.writeString(url)
+        dest.writeParcelable(httpAdditionalData, flags)
     }
 
     companion object {

@@ -67,6 +67,13 @@ internal class BeagleView(
             is ViewState.Loading -> handleLoading(state.value)
             is ViewState.Error -> handleError(state.throwable, state.retry)
             is ViewState.DoRender -> renderComponent(state.component, view, state.screenId)
+            is ViewState.DoCancel -> {
+                // Handle cancel state - stop loading or reset to initial state
+                handleLoading(false)
+            }
+            null -> {
+                // Handle null state - do nothing or set default state
+            }
         }
     }
 

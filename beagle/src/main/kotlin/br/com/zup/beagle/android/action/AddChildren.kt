@@ -105,6 +105,7 @@ data class AddChildren(
             Mode.APPEND -> appendListOnViewGroupChildren(view, viewList)
             Mode.PREPEND -> prependValue(view, viewList)
             Mode.REPLACE -> replaceValue(view, viewList)
+            null -> appendListOnViewGroupChildren(view, viewList) // Default to APPEND when null
         }
     }
 

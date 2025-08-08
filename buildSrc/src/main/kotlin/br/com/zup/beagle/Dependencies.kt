@@ -44,11 +44,11 @@ class Dependencies : Plugin<Project> {
     }
 
     object Versions {
-        const val compileSdk = 30
-        const val minSdk = 19
-        const val targetSdk = 30
-        const val buildTools = "30.0.2"
-        const val kotlin = "1.5.21"
+        const val compileSdk = 34
+        const val minSdk = 21
+        const val targetSdk = 34
+        const val buildTools = "34.0.0"
+        const val kotlin = "1.8.22"
 
         const val kotlinCoroutines = "1.5.1"
 
