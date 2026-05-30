@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>br.com.zup.beagle</groupId>
+  <artifactId>beagle-yoga</artifactId>
+  <version>1.19.0</version>
+  <packaging>aar</packaging>
+  <name>beagle-yoga</name>
+  <description>Yoga layout engine for Beagle – patched for Android 16KB page size compatibility.
+  libyoga.so arm64-v8a and x86_64 ELF load segments are re-aligned to 16KB boundaries.</description>
+  <url>https://github.com/ZupIT/beagle</url>
+  <licenses>
+    <license>
+      <name>Apache License 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+</project>
+

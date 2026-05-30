@@ -29,7 +29,7 @@ afterEvaluate {
     task jacocoMerge {
         description = 'Merges JaCoCo execution data from all subprojects'
         group = 'verification'
-
+        
         doFirst {
             delete fileTree("${rootProject.buildDir}/jacoco/") {
                 include '**/allTestCoverage.exec'
@@ -41,8 +41,8 @@ afterEvaluate {
             projectsFound.each {
                 def projBuildDir = it.buildDir
                 fileTree(dir: projBuildDir, includes: [
-                    'jacoco/testDebugUnitTest.exec',
-                    'outputs/code-coverage/connected/*coverage.ec',
+                    'jacoco/testDebugUnitTest.exec', 
+                    'outputs/code-coverage/connected/*coverage.ec', 
                     'jacoco/test.exec'
                 ]).each { file ->
                     if (file.exists()) {
@@ -50,9 +50,9 @@ afterEvaluate {
                     }
                 }
             }
-
+            
             if (execFiles.size() > 0) {
-                ant.taskdef(name: 'jacocoMerge', classname: 'org.jacoco.ant.MergeTask',
+                ant.taskdef(name: 'jacocoMerge', classname: 'org.jacoco.ant.MergeTask', 
                     classpath: configurations.jacocoAnt.asPath)
                 ant.jacocoMerge(destfile: allTestCoverageFile) {
                     execFiles.each { file ->
@@ -60,7 +60,7 @@ afterEvaluate {
                     }
                 }
             }
-
+            
             projectsFound.each {
                 def projBuildDir = it.buildDir
                 copy {

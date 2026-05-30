@@ -98,9 +98,10 @@ data class TabBar(
 
     private fun TabLayout.addTabs(rootView: RootView, container: BeagleFlexView) {
         for (i in items.indices) {
-            addTab(newTab().apply {
-                text = items[i].title
-                items[i].icon?.let { imagePath ->
+            val tabBarItem = items[i]
+            val tab = newTab().apply {
+                text = tabBarItem.title
+                tabBarItem.icon?.let { imagePath ->
 
                     observeBindChanges(rootView, container, imagePath.mobileId) { iconPath ->
                         iconPath?.let {
@@ -108,7 +109,19 @@ data class TabBar(
                         }
                     }
                 }
-            })
+            }
+            // Set custom text color if provided
+            if (!tabBarItem.color.isNullOrBlank()) {
+                val textView = android.widget.TextView(context)
+                textView.text = tabBarItem.title
+                try {
+                    textView.setTextColor(android.graphics.Color.parseColor(tabBarItem.color))
+                } catch (e: IllegalArgumentException) {
+                    // Invalid color string, fallback to default
+                }
+                tab.customView = textView
+            }
+            addTab(tab)
         }
     }
 
@@ -159,9 +172,12 @@ data class TabBar(
  * @param icon
  *                  display an icon image on the TabView component.
  *                  If it is left as null or not declared it won't display any icon.
+ * @param color
+ *                  specify a text color for the tab. It should be a hex color string, e.g. #FF0000.
  *
  */
 data class TabBarItem(
     val title: String? = null,
     val icon: ImagePath.Local? = null,
+    val color: String? = null, // Hex color string, e.g. #FF0000
 )

@@ -70,6 +70,14 @@ android {
         viewBinding true
     }
 
+    // Store .so files uncompressed so the system linker can mmap them
+    // with proper 16KB page alignment at runtime.
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
+
     sourceSets {
         androidTest.java.srcDirs += "src/androidTest/kotlin"
         debug.java.srcDirs += "src/debug/kotlin"
@@ -94,9 +102,12 @@ dependencies {
 
     kapt project(Dependencies.Modules.internalProcessor)
 
-    implementation Dependencies.GeneralLibraries.yoga
     implementation Dependencies.GeneralLibraries.soLoader
     implementation Dependencies.GeneralLibraries.jni
+
+    // The patched beagle-yoga (16KB-aligned libyoga.so) is served from local-maven/
+    // which takes priority over remote repositories (see root build.gradle).
+    implementation Dependencies.GeneralLibraries.yoga
 
     implementation Dependencies.GoogleLibraries.materialDesign
 

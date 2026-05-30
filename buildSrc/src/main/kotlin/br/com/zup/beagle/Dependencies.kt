@@ -62,14 +62,14 @@ class Dependencies : Plugin<Project> {
 
         const val moshi = "1.12.0"
 
-        const val soLoader = "0.10.1"
+        const val soLoader = "0.12.1"
 
         const val junit5 = "5.7.0"
         const val junit4 = "4.13.2"
 
         const val yoga = "1.19.0"
 
-        const val jni = "0.2.2"
+        const val jni = "0.7.0"
 
         const val webSocket = "1.5.2"
         const val slf4jSimple = "1.7.32"
