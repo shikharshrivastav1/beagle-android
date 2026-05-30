@@ -135,4 +135,53 @@ dependencies {
     testImplementation Dependencies.TestLibraries.fragmentTest
 }
 
+// --- Automated task: extract patched beagle-yoga jni into jniLibs before assemble ---
+// This allows producing a self-contained beagle AAR that already contains
+// the 16KB-aligned native libraries (libyoga.so).
+task extractPatchedYogaJni(type: Copy) {
+    def patched = file("$projectDir/libs/beagle-yoga-1.19.0-16k.aar")
+
+    // Fail fast if patched AAR is missing
+    doFirst {
+        if (!patched.exists()) {
+            throw new GradleException("Patched AAR not found: ${patched}. Run scripts/patch_yoga_16kb.py first.")
+        }
+    }
+
+    from(zipTree(patched)) {
+        include "jni/**"
+        // strip the leading 'jni/' path segment so files land under jniLibs/<arch>/
+        eachFile { details ->
+            if (details.path.startsWith('jni/')) {
+                details.path = details.path.substring('jni/'.length())
+            }
+        }
+        includeEmptyDirs = false
+    }
+
+    into "$projectDir/src/main/jniLibs"
+
+    // Always refresh destination to ensure the latest patched .so are used
+    doFirst {
+        delete fileTree(dir: "$projectDir/src/main/jniLibs")
+    }
+}
+
+// Attach extraction to existing assemble/bundle tasks (only if they exist).
+// Use findByName to avoid forcing creation/configuration of other tasks/plugins
+// which can produce classpath/configuration-time failures in some environments.
+afterEvaluate {
+    // ensure extraction runs before assembling the AAR but only attach to
+    // tasks that already exist to avoid triggering other plugins during config
+    def assembleTask = tasks.findByName('assembleRelease')
+    if (assembleTask != null) {
+        assembleTask.dependsOn extractPatchedYogaJni
+    }
+
+    def bundleTask = tasks.findByName('bundleReleaseAar')
+    if (bundleTask != null) {
+        bundleTask.dependsOn extractPatchedYogaJni
+    }
+}
+
 apply from: "$rootDir/maven-publish.gradle"
